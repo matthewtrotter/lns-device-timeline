@@ -1,0 +1,2 @@
+multi-key-dict==2.0.3
+pandas==1.2.3
