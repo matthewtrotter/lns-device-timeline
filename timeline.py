@@ -338,9 +338,6 @@ class MuxsLogIngestor:
 class DeviceTimeline:
     timeline = pd.DataFrame(columns=['Timestamp'])
     deveui: str
-    devaddrs = list()
-    diids = list()
-    pdus = list()
     start_time: datetime.datetime
 
     def __init__(self, deveui: str, start_time: datetime.datetime) -> None:
@@ -359,6 +356,10 @@ class DeviceTimeline:
         self.start_time = start_time
         self.output_dir = Path('./output')
         self.output_dir.mkdir(exist_ok=True)
+
+        self.pdus = list()
+        self.devaddrs = list()
+        self.diids = list()
 
     def __str__(self) -> str:
         return self.deveui
@@ -471,7 +472,7 @@ class DeviceTimeline:
         """
         normal_join_note = 'Normal Join: LNS carried out the normal join process.'
         device_not_joined_note = 'Device Error: Device tried to join again after successful join process.'
-        gw_missed_dn_jacc = 'LNS Error: Gateway scheduled JACC but did not transmit it.'
+        gw_missed_dn_jacc = 'GW Error: Gateway scheduled JACC but did not transmit it.'
 
         self.timeline['Notes'] = ''
         for i in range(1, self.timeline.shape[0]+1):
@@ -546,7 +547,7 @@ class DeviceTimeline:
 
 class DeviceStats:
     def __init__(self, devices: List[DeviceTimeline]) -> None:
-        stat_names = ['Normal Join', 'Device Error', 'LNS Error']
+        stat_names = ['Normal Join', 'Device Error', 'GW Error']
         deveuis = [d.deveui for d in devices]
         stats = pd.DataFrame(np.zeros([len(devices), len(stat_names)]), deveuis, stat_names)
         for stat in stat_names:
