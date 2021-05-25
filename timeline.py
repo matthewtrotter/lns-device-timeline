@@ -5,6 +5,7 @@ import json
 import logging
 from multi_key_dict import multi_key_dict
 from multiprocessing import Pool, Value
+import numpy as np
 import pandas as pd
 from pathlib import Path
 import re
@@ -468,7 +469,7 @@ class DeviceTimeline:
     def check_for_errors(self):
         """Analyze the sequence of events for operational errors
         """
-        normal_join_note = 'Normal join behavior for LNS'
+        normal_join_note = 'Normal Join: LNS carried out the normal join process.'
         device_not_joined_note = 'Device Error: Device tried to join again after successful join process.'
         gw_missed_dn_jacc = 'LNS Error: Gateway scheduled JACC but did not transmit it.'
 
@@ -542,6 +543,22 @@ class DeviceTimeline:
         self.timeline.to_excel(filename)
 
 
+
+class DeviceStats:
+    def __init__(self, devices: List[DeviceTimeline]) -> None:
+        stat_names = ['Normal Join', 'Device Error', 'LNS Error']
+        deveuis = [d.deveui for d in devices]
+        stats = pd.DataFrame(np.zeros([len(devices), len(stat_names)]), deveuis, stat_names)
+        for stat in stat_names:
+            for device in devices:
+                found = device.timeline['Notes'].str.contains(stat)
+                stats.loc[device.deveui, stat] = device.timeline[found].shape[0]
+
+        filename = devices[0].output_dir / 'stats.xlsx'
+        stats.to_excel(filename)
+
+
+
 def ingest(logtype: str, logfolder: Path):
     """Ingest a log file of a certain type (station, joins, nwks, ...)
 
@@ -593,6 +610,8 @@ def main(args):
         device.extract(ingestors)
         device.check_for_errors()
         device.to_xlsx()
+
+    stats = DeviceStats(devices)
     
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 /.vscode
 /logs
 /output
+*.zip
 ~*.xlsx
 
 
